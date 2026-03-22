@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel - Mensagem do Céu</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; }
+        .pedido-card { border-left: 5px solid #6b5b95; background: #fafafa; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
+        .nome { font-weight: bold; color: #6b5b95; }
+        .data { font-size: 0.8em; color: #888; float: right; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🙏 Pedidos de Oração</h1>
+        <div id="lista-pedidos">Carregando pedidos do céu...</div>
+    </div>
+
+    <script>
+        // 1. Configurando a conexão (COLOQUE AS SUAS CHAVES AQUI)
+        const supabaseUrl = 'https://jnydylymxpkrqllqcyse.supabase.co'; // Ex: https://jnydylymxpkrqllqcyse.supabase.co
+        const supabaseKey = 'sb_publishable_ffc-WVhDUydO020hJvZ-GQ_GoP4-3OteyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpueWR5bHlteHBrcnFsbHFjeXNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwOTgxMTgsImV4cCI6MjA4ODY3NDExOH0.fxUbdm7oItzJdW8ycpuLJtznVjwTzmLOz8ialZ96Yt0';
+        const supabase = supabaseCreateClient.createClient(supabaseUrl, supabaseKey);
+
+        // 2. Função para buscar os pedidos no banco de dados
+        async function carregarPedidos() {
+            const { data, error } = await supabase
+                .from('pedidos_oracao')
+                .select('*')
+                .order('created_at', { ascending: false }); // Traz os mais recentes primeiro
+
+            const divLista = document.getElementById('lista-pedidos');
+            divLista.innerHTML = ''; // Limpa o "Carregando..."
+
+            if (error) {
+                divLista.innerHTML = '<p>Erro ao carregar os pedidos.</p>';
+                console.error(error);
+                return;
+            }
+
+            if (data.length === 0) {
+                divLista.innerHTML = '<p>Nenhum pedido de oração no momento.</p>';
+                return;
+            }
+
+            // 3. Montando a tela com os dados
+            data.forEach(item => {
+                const dataFormatada = new Date(item.created_at).toLocaleDateString('pt-BR');
+                const nomeExibicao = item.nome ? item.nome : 'Anônimo';
+
+                divLista.innerHTML += `
+                    <div class="pedido-card">
+                        <span class="data">${dataFormatada}</span>
+                        <p class="nome">${nomeExibicao}</p>
+                        <p>${item.pedido}</p>
+                        <small>Quem já orou: ${item.quem_orou.length} pessoa(s)</small>
+                    </div>
+                `;
+            });
+        }
+
+        // Executa a função assim que a página abre
+        carregarPedidos();
+    </script>
+
+</body>
+</html>
